@@ -1,0 +1,45 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Open Sans', sans-serif;
+    font-family: 'Source Sans Pro', sans-serif;
+}
+h1{
+    margin: 2rem;
+}
+
+input{
+    visibility: hidden;
+}
+.container {
+    top: 2rem;
+    bottom: 2rem;
+    left: 2rem;
+    right: 2rem;
+    position: absolute;
+    background-color: white;
+    border: solid 1px black;
+    border-radius: 3rem;
+    transition: all 0.5s ease-in-out;
+}
+
+.button{
+    border: solid 1px black;
+    width: 8rem;
+    margin: 1rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.5s ease-in-out;
+    border-radius: 0.5rem;
+}
+
+.button:hover{
+    background-color: rgb(109, 104, 104);
+    color: white;
+}
+
+
+

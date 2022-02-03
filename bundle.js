@@ -42923,5 +42923,27 @@ var IfcAPI2 = class {
   }
 };
 
-console.log(IfcAPI2);
+const ifcApi=new IfcAPI2 ();
+ifcApi.Init();
+
 console.log('hola');
+const button = document.getElementById('input-button');
+const input=document.getElementById('input-element');
+
+button.onclick= () => {
+    input.click();
+};
+
+input.onchange=(changed)=>{
+    console.log(changed);
+    const reader= new FileReader();
+    reader.onload= () => loadIfc(reader.result);
+    reader.readAsText(changed.target.files[0]);
+};
+
+function loadIfc(IfcData) {
+    console.log(IfcData);
+    const modelID = ifcApi.OpenModel(IfcData);
+    ifcApi.GetAllLines(modelID);
+
+}
