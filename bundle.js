@@ -1,3 +1,66 @@
+const geometryTypes = new Set([
+    "IfcCartesianPoint",
+    "IfcArbitraryClosedProfileDef",
+    "IfcDirection",
+    "IfcAxis2Placement3D",
+    "IfcAxis2Placement2D",
+    "IfcLocalPlacement",
+    "IfcShapeRepresentation",
+    "IfcRectangleProfileDef",
+    "IfcPolyline",
+    "IfcPlane",
+    "IfcExtrudedAreaSolid",
+    "IfcSurfaceStyleRendering",
+    "IfcSurfaceStyle",
+    "IfcPresentationStyleAssignment",
+    "IfcStyledRepresentation",
+    "IfcCartesianTransformationOperator3D",
+    "IfcColourRgb",
+    "IfcCartesianTransformationOperator3DNonUniform",
+    "IfcStyledItem",
+    "IfcCurveBoundedPlane",
+    "IfcConnectionSurfaceGeometry",
+    "IfcProductDefinitionShape",
+    "IfcGeometricRepresentationContext",
+    "IfcGeometricRepresentationSubcontext",
+    "IfcPolyLoop",
+    "IfcFaceOuterBound",
+    "IfcFace",
+    "IfcCartesianTransformationOperator3DnonUniform",
+    "IfcFaceBound",
+    "IfcClosedShell",
+    "IfcFacetedBrep",
+    "IfcRepresentationMap",
+    "IfcMappedItem",
+    "IfcRelFillsElement",
+    "IfcArbitraryProfileDefWithVoids",
+    "IfcCompositeCurve",
+    "IfcCompositeCurveSegment",
+    "IfcCircle",
+    "IfcEllipse",
+    "IfcCircleHollowProfileDef",
+    "IfcRectangleHollowProfileDef",
+    "IfcLine",
+    "IfcIShapeProfileDef",
+    "IfcGeometricRepresentationContext",
+    "IfcGeometricRepresentationSubContext",
+    "IfcCurveStyle",
+    "IfcDraughtingPreDefinedCurveFont",
+    "IfcGeometricSet",
+    "IfcCircleProfileDef",
+    "IfcPolygonalBoundedHalfSpace",
+    "IfcFaceBasedSurfaceModel",
+    "IfcConnectedFaceSet",
+    "IfcTrimmedCurve",
+    "IfcOpenShell",
+    "IfcShellBasedSurfaceModel",
+    "IfcHalfSpaceSolid",
+    "IfcBooleanClippingResult",
+    "IfcGeometricCurveSet",
+    "IfcCurveStyleFont",
+    "IfcCurveStyleFontPattern"
+]);
+
 var __defProp = Object.defineProperty;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
@@ -42923,70 +42986,84 @@ var IfcAPI2 = class {
   }
 };
 
-//Crea instancia de la API de IFC.js
-const ifcapi=new IfcAPI2();
+// Crea instancia de la API de IFC.js
+const ifcapi = new IfcAPI2();
 
-//Crea referencias de los objetos gráficos de la app
+// Consige referencias a los elementos graficos de la app
 const button = document.getElementById("file-opener-button");
 const leftContainer = document.getElementById("left-container");
 const saveButton = document.getElementById("save-button");
 const json = document.getElementById("json");
 const input = document.getElementById("file-input");
 
-//Cargado de archivos del fichero
+// Configura el cargado de archivos desde el PC
 button.addEventListener('click', () => input.click());
 input.addEventListener(
     "change",
-    (changed) =>{
-        const reader= new FileReader();
-        reader.onload= () => LoadFile(reader.result);
+    (changed) => {
+        const reader = new FileReader();
+        reader.onload = () => LoadFile(reader.result);
         reader.readAsText(changed.target.files[0]);
     },
     false
 );
 
-//Carga el ifc en la API
-function LoadFile(ifcAsText){
+// Carga el archivo IFC y lo convierte en JSON
+async function LoadFile(ifcAsText) {
+    // Muestra el texto IFC en el menu, sustituyendo saltos de linea por <br> (salto de linea en HTML)
     leftContainer.innerHTML = ifcAsText.replace(/(?:\r\n|\r|\n)/g, '<br>');
-    const modelID=OpenIfc(ifcAsText);
-    const allItems=GetAllItems(modelID);
-    const result=JSON.stringify(allItems,undefined,2);
-    json.textContent=result;
-    const blob=new Blob([result],{type:'aplication/json'});
-    saveButton.href=URL.createObjectURL(blob);
-    saveButton.download='data.json';
+
+    // Abre el modelo IFC con IFC.js
+    const modelID = await OpenIfc(ifcAsText);
+
+    // Consigue todos los objetos IFC
+    const allItems = GetAllItems(modelID);
+
+    // Convierte el resultado a un JSON y lo muestra en el menu
+    const result = JSON.stringify(allItems, undefined, 2);
+    json.textContent  = result;
+
+    // Crea un archivo con el JSON y lo guarda
+    const blob = new Blob([result], {type: "application/json"});
+    saveButton.href  = URL.createObjectURL(blob);
+    saveButton.download = "data.json";
     saveButton.click();
+
+    // Cierra la API de IFC.js
     ifcapi.CloseModel(modelID);
 }
 
-function OpenIfc(ifcAsText){
-    ifcapi.Init();
-    return ifcapi.OpenModel(ifcAsText)
-
-}
-function GetAllItems(modelID,excludeGeometry=true){
-    const allItems={};
-    const lines= ifcapi.GetAllLines(modelID);    
-    GetAllItemsFromLines(modelID,lines,allItems,excludeGeometry);
-    return allItems
+// Inicializa la API de IFC.js y abre el modelo
+async function OpenIfc(ifcAsText) {
+    await ifcapi.Init();
+    return ifcapi.OpenModel(ifcAsText);
 }
 
-function GetAllItemsFromLines(modelID,lines,allItems,excludeGeometry){
-    for( let i=1; i<= lines.size(); i++) {
-        try{
-            saveProperties(modelID,lines,allItems,excludeGeometry,i);
+// Consigue todos los items del IFC
+function GetAllItems(modelID, excludeGeometry = true) {
+    const allItems = {};
+    const lines = ifcapi.GetAllLines(modelID);
+    getAllItemsFromLines(modelID, lines, allItems, excludeGeometry);
+    return allItems;
+}
 
-        } catch (e){
+// Consigue las propiedades de todos los items del IFC
+function getAllItemsFromLines(modelID, lines, allItems, excludeGeometry) {
+    for (let i = 1; i <= lines.size(); i++) {
+        try {
+            saveProperties(modelID, lines, allItems, excludeGeometry, i);
+        } catch (e) {
             console.log(e);
         }
     }
 }
 
-function saveProperties(modelID,lines,allItems,excludeGeometry,index){
-    const itemID=lines.get(index);
-    const props=ifcapi.GetLine(modelID,itemID);
-    props.type=props.__proto__.constructor.name;
-    if (!excludeGeometry || !geometryTypes.has(props.type)){
-        allItems[itemID]=props;
+// Guarda las propiedades de un item del IFC
+function saveProperties(modelID, lines, allItems, excludeGeometry, index) {
+    const itemID = lines.get(index);
+    const props = ifcapi.GetLine(modelID, itemID);
+    props.type = props.__proto__.constructor.name;
+    if (!excludeGeometry || !geometryTypes.has(props.type)) {
+        allItems[itemID] = props;
     }
 }
